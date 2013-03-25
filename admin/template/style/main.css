@@ -1,3 +1,17 @@
+
+@font-face{
+	font-family: tamil;
+	src: url(ADAANA.TTF);
+}
+.Hindi{
+}
+.Tamil{
+	font-family: tamil;
+	font-size: 20px;
+	line-height: 14px;
+}
+.English{
+}
 *{
 	padding: 3px;
 }
@@ -45,13 +59,12 @@ body{
 	opacity: 0.5;
 }
 .thumbnail{
-	width:200px;
+	width:100px;
 	height: auto;
 	border: none;
 }
 #header{
 	text-align: center;
-	color: #592b00;
 	padding: 0px;
 	margin: 5px 0px;
 	margin-top: 0px;
@@ -61,6 +74,14 @@ body{
 }
 input[type=text],input[type=password]{
 	background-color: #ffed71;
+	width: 200px;	
+}
+#header a:link,#header a:visited{
+	 color: #732;
+	 text-decoration: none;
+}
+#header a:hover,#header a:active{
+	 text-decoration: underline;
 }
 #content{
 	background-color: #b78b44;

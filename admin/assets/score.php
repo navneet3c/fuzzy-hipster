@@ -43,6 +43,7 @@ try{
 }
 $T_TITLE='NITTFEST Score';
 $T_HEADER='Scoreboard';
+$T_HEADSCRIPTS='<script type="text/javascript" src="datatable/jquery.min.js" ></script>';
 $res=run_query("SELECT `pageid`,`name`,`title` FROM `pages` WHERE `parentid`='1';",$c);
 $eventselect='';
 while($row=mysql_fetch_assoc($res)){

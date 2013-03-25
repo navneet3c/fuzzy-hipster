@@ -16,15 +16,14 @@ if(!defined('NAMESPACE111222333')){
 	if(isset($T_HEADSTYLES))
 		echo $T_HEADSTYLES;
  ?>
- <script type ="text/javascript" src="<?php echo $PATH; ?>template/scripts/jquery.min.js"></script>
- <script type ="text/javascript" src="<?php echo $PATH; ?>template/scripts/main.js"></script>
+<!-- <script type ="text/javascript" src="<?php echo $PATH; ?>template/scripts/main.js"></script> -->
  <?php
 	if(isset($T_HEADSCRIPTS))
 		echo $T_HEADSCRIPTS;
  ?>
 </head>
 <body>
-<div id="header"><h2><?php echo $T_HEADER; ?></h2></div>
+<div id="header"><h2><?php echo ($PATH?"<a href='{$PATH}index.php'>Home</a>&nbsp;>&nbsp;":"").$T_HEADER; ?></h2></div>
 <?php
 if(isset($T_ERROR))
 	echo "
@@ -37,7 +36,7 @@ if(isset($T_INFO))
  <?php echo $T_CONTENT; ?>
 </div>
 <div id="footer">
-<?php echo "<a href='{$PATH}index.php'>Home</a>&nbsp;".$T_FOOTER; ?>
+<?php echo $T_FOOTER; ?>
 </div>
 <div class="clear"></div>
 </body>

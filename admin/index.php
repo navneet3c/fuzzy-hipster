@@ -4,6 +4,8 @@ require_once('config/variables.php');
 session_set_cookie_params(time()+$TIME,'/');
 session_start();
 $a=explode('.',$_SERVER['SERVER_ADDR']);
+if(!isset($a[0]))
+$a=explode(':',$_SERVER['SERVER_ADDR']);
 $s=$a[0].$a[1].$_SERVER['HTTP_USER_AGENT'].session_id().$KEY1;
 if(!isset($_SESSION['hasher'])) $_SESSION['hasher']=md5(time());
 $parallel=md5($_SESSION['hasher'].$KEY2.$s);
@@ -47,10 +49,11 @@ BODY;
 } else {
 	$T_HEADER='Welcome!';
 	$T_CONTENT="
-<div id='login-actions'>
-<ul>
+<div id='login-actions'><ul>
 <li><a href='assets/score.php'>Manage Scorecard</a></li>
 <li><a href='assets/events.php'>Manage Events</a></li>
+<li><a href='assets/upload.php'>Manage Uploads</a></li>
+<li><a href='assets/updates.php'>Manage Updates</a></li>
 <li><a href='assets/sponsors.php'>Manage Sponsors</a></li>
 <li><a href='assets/edit_login.php'>Change Login Details</a></li>
 </ul></div>

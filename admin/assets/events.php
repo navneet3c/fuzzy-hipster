@@ -21,7 +21,9 @@ if(isset($_POST['editSubmit']))
 try{
 	if(!($_POST['name'] && $_POST['title'] && $_POST['language']))
 		throw new Exception('Please fill all starred fields.');
-	$name=urlencode(filter_var($_POST['name'],FILTER_SANITIZE_STRING));
+	$name=filter_var($_POST['name'],FILTER_SANITIZE_STRING);
+	$name=filter_var($_POST['name'],FILTER_SANITIZE_STRING);
+        $name=str_replace(' ','-',strtolower($name));
 	$title=filter_var($_POST['title'],FILTER_SANITIZE_STRING);
 	$type=$_POST['type']?filter_var($_POST['type'],FILTER_SANITIZE_STRING):'';
 	$lang=in_array($_POST['language'],array('English','Hindi','Tamil'))?$_POST['language']:'English';
@@ -36,9 +38,10 @@ try{
 else if(isset($_POST['updateSubmit']))
 try{
 	$editpage=intval($_GET['edit']);
-	$name=urlencode(filter_var($_POST['name'],FILTER_SANITIZE_STRING));
+	$name=filter_var($_POST['name'],FILTER_SANITIZE_STRING);
 	if(!$name)
 		throw new Exception('Please enter name');
+	$name=str_replace(' ','-',strtolower($name));
 	$title=filter_var($_POST['title'],FILTER_SANITIZE_STRING);
 	if(!$title)
 		throw new Exception('Please enter title');
@@ -131,6 +134,10 @@ if(!$res) $page=1;
 else $language=$res[0];
 $T_TITLE='NITTFEST Events Management';
 $T_HEADER='Events';
+if(isset($_GET['edit'])){
+	$editpage=intval($_GET['edit']);
+	$label=pagepath($editpage);
+}else
 $label=pagepath($page);
 $T_CONTENT='';
 foreach($label as $a)
@@ -141,11 +148,7 @@ $show=1;
 if(isset($_GET['edit']))
 try{
 	$T_HEADSCRIPTS="<script type ='text/javascript' src='{$PATH}template/scripts/ckeditor.js'></script>
-	<script type ='text/javascript'>
-	$(document).ready(function(){
-	CKEDITOR.replace( 'editbox', { });});
-	</script>";
-	$editpage=intval($_GET['edit']);
+	";
 	$res=mysql_fetch_assoc(run_query("SELECT * FROM `pages` WHERE `pageid`='$editpage';",$c));
 	if(!$res) throw new Exception();
 	$score=explode(';',$res['scores']);
@@ -155,30 +158,40 @@ try{
 			$sc.="<li><input type='text' name='score[]' value='{$s}'></li>";
 	}
 	$text=stripslashes($res['description']);
+	$lang='';
+foreach(array('English','Hindi','Tamil') as $l)
+	$lang.="<option".($l==$res['language']?' SELECTED':'').">$l</option>";
 	$T_CONTENT.=<<<BODY
 <div>
 <script type="text/javascript">
-$(document).ready(function(){
-	$('#addscore').click(function(){
-	$('#scoreslist').append("<li><input type='text' name='score[]' ></li>");
-});
+window.onload=function(){
+	document.getElementById('addscore').onclick=function(){
+	document.getElementById('scoreslist').innerHTML+="<li><input type='text' name='score[]' ></li>";
+};
 for(var i=3;i>0;--i)
-	$('#addScore').click();
-});
+	document.getElementById('addscore').onclick();
+};
 </script>
 <form action="./events.php?edit={$editpage}" method="post">
 <table>
 <tr><td><input type="submit" value="Update" name="updateSubmit" ></td><td>&nbsp;</td></tr>
 <tr><td>Name</td><td><input type="text" name="name" value="{$res['name']}" ></td></tr>
-<tr><td>Title</td><td><input type="text" name="title" value="{$res['title']}" ></td></tr>
+<tr><td>Title</td><td><input type="text" name="title" class="{$res['language']}" value="{$res['title']}" ></td></tr>
 <tr><td>Type</td><td><input type="text" name="type" value="{$res['type']}" ></td></tr>
 <tr><td>Scores<br /><input type="button" value="Add Score" id="addscore"></td><td><ol id="scoreslist">{$sc}</ol></td></tr>
-<tr><td>Language:</td><td><select size="1" name="language"><option>English</option><option>Hindi</option><option>Tamil</option></select></td></tr>
+<tr><td>Language:</td><td><select size="1" name="language">{$lang}</select>
+<script type="text/javascript">
+a=function(){
+document.forms[0].title.className=this.options[this.selectedIndex].value;
+}
+document.forms[0].language.onchange=a;
+</script>
+</td></tr>
 </table>
-<textarea id='editbox' name="description">{$text}</textarea><br />
+<div id="descwrapper" class="{$res['language']}"><textarea id='editbox' class='ckeditor' name="description">{$text}</textarea></div><br />
 <input type="submit" value="Update" name="updateSubmit" >
 </form><br /><br />
-<a class='action' href='./events.php?delete=$editpage' title='Delete'><img src='{$PATH}/template/images/delete.png' alt='Delete' >&nbsp;Delete Page</a>
+<a class='action' href='./events.php?delete=$editpage' title='Delete' onclick="return confirm('Delete the page {$res['name']}?')"><img src='{$PATH}/template/images/delete.png' alt='Delete' >&nbsp;Delete Page</a>
 </div>
 BODY;
 	$show=0;
@@ -189,7 +202,7 @@ if($show){
 $res=mysql_fetch_row(run_query("SELECT MAX(`rank`),MIN(`rank`) FROM `pages` WHERE `parentid`='$page';",$c));
 $minp='';$maxp='';
 if(!($res[0]==='')){ $minp=$res[0]; $maxp=$res[1]; }//rank opp
-$q=run_query("SELECT `pageid`,`name`,`title`,`rank` FROM `pages` WHERE `parentid`='$page' ORDER BY `rank`;",$c);
+$q=run_query("SELECT `pageid`,`name`,`title`,`rank`,`language` FROM `pages` WHERE `parentid`='$page' ORDER BY `rank`;",$c);
 if(mysql_num_rows($q)){
 	$con="<ol>";
 	while($res=mysql_fetch_assoc($q)){
@@ -197,7 +210,7 @@ if(mysql_num_rows($q)){
 		$down=$res['rank']==$minp?"<img class='disabled' src='{$PATH}/template/images/down.png' alt='Down' >":"<a class='action' href='./events.php?down={$res['pageid']}' title='Move Down'><img src='{$PATH}/template/images/down.png' alt='Down' ></a>";
 		$con.="<li><a class='action' href='./events.php?edit={$res['pageid']}' title='Edit'><img src='{$PATH}/template/images/edit.png' alt='Edit' ></a>&nbsp;&nbsp;&nbsp;
 		{$up}{$down}&nbsp;&nbsp;&nbsp;
-		<a href='./events.php?page={$res['pageid']}'>{$res['name']} - {$res['title']}</a></li>";
+		<a href='./events.php?page={$res['pageid']}'>{$res['name']} - <span class='{$res['language']}'>{$res['title']}</span></a></li>";
 	}
 	$con.="</ol>";
 }else
@@ -214,9 +227,16 @@ $con
 <form action="./events.php?page=$page" method="post">
 <table>
 <tr><td>Name *</td><td><input type="text" name="name" /></td></tr>
-<tr><td>Title *</td><td><input type="text" name="title" /></td></tr>
+<tr><td>Title *</td><td><input class="English" type="text" name="title" /></td></tr>
 <tr><td>Type</td><td><input type="text" name="type" /></td></tr>
-<tr><td>Language</td><td><select size="1" name="language">$lang</select></td></tr>
+<tr><td>Language</td><td><select size="1" name="language">$lang</select>
+<script type="text/javascript">
+a=function(){
+document.forms[0].title.className=this.options[this.selectedIndex].value;
+}
+document.forms[0].language.onchange=a;
+</script>
+</td></tr>
 <tr><td><input type="submit" name="editSubmit" /></td></tr>
 </table>
 </form>
